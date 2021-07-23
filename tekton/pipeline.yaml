@@ -1,0 +1,30 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: express-app-pipeline
+spec:
+  workspaces:
+  - name: pipeline-shared-data
+  tasks:
+  - name: clone-repository
+    taskRef:
+      kind: ClusterTask
+      name: git-clone
+    workspaces:
+    - name: output
+      workspace: pipeline-shared-data
+    params:
+    - name: url
+      value: https://github.com/qqYe/bootcamp3-buildah-expressapp.git
+  - name: build-image
+    taskRef:
+      kind: ClusterTask
+      name: buildah
+    runAfter:
+      - clone-repository
+    params:
+      - name: IMAGE
+        value: "quay.io/qqye/buildah-assignment:$(tasks.clone-repository.results.commit)"
+    workspaces:
+      - name: source
+        workspace: pipeline-shared-data
